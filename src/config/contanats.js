@@ -1,18 +1,18 @@
 const devConfig = {
-  MONGO_URL: 'mongodb://localhost/express-es6-dev',
+  MONGO_URL: 'mongodb://localhost/ocr-api',
   JWT_SECRET: 'thisisasecret'
 };
 
 const testConfig = {
-  MONGO_URL: 'mongodb://localhost/express-es6-test'
+  MONGO_URL: 'mongodb://localhost/ocr-api'
 };
 
 const prodConfig = {
-  MONGO_URL: 'mongodb://localhost/express-es6-prod'
+  MONGO_URL: 'mongodb://localhost/ocr-api'
 };
 
 const defaultConfig = {
-  PORT: process.env.PORT || 3000,
+  PORT: process.env.PORT || 9000,
   MODE: process.env.NODE_ENV || "development"
 };
 
