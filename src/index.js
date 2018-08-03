@@ -4,6 +4,7 @@ import express from 'express';
 import Tesseract from 'tesseract.js';
 import multer from 'multer';
 import { hashSync, compareSync } from 'bcrypt-nodejs';
+import fs from 'fs';
 
 import { authLocal, authJwt } from './services/auth.services';
 import Data from './models/data.model';
@@ -30,7 +31,23 @@ app.get('/', (req, res) => {
   res.send('hello');
 });
 
-app.post('/get-data', [authJwt, upload.single('image')], function (req, res) {
+app.post('/get-data', [authJwt, upload.single('image')], async function (req, res) {
+  const data = await Data.findOne({ _id: req.body.id, userId: req.user.id }).lean();
+
+  if (!compareSync(req.body.page_number, data.pageNumber)) {
+    return res.json({ success: false, error: 'job failed' });
+  }
+
+  let textItems = [];
+
+  for (let k in data) {
+    if (k != '_id' && k != 'userId' && k != 'pageNumber' && k != 'mainText' && k != '__v') {
+      textItems[k] = data[k];
+    }
+  }
+
+  var key = {};
+
   // console.log(req.file);
   let text = '';
   Tesseract.recognize(req.file.path)
@@ -42,7 +59,20 @@ app.post('/get-data', [authJwt, upload.single('image')], function (req, res) {
         for(var i =0; i < text.length; i++){
             stringArray.push(text[i]);
         }
-        console.log(stringArray);
+        
+        for (let k in textItems) {
+          for (let i = 0; i < stringArray.length; i++) {
+            if (compareSync(stringArray[i], textItems[k])) {
+              key[k] = stringArray[i];
+              break;
+            }
+          }
+        }
+
+        fs.unlinkSync(req.file.path);
+        // const decryptKey = gene
+        console.log(key);
+
     });
 });
 
