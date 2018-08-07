@@ -46,7 +46,7 @@ app.post('/get-data', [authJwt, upload.single('image')], async function (req, re
     }
   }
 
-  var key = {};
+  var key = '';
 
   // console.log(req.file);
   let text = '';
@@ -63,15 +63,24 @@ app.post('/get-data', [authJwt, upload.single('image')], async function (req, re
         for (let k in textItems) {
           for (let i = 0; i < stringArray.length; i++) {
             if (compareSync(stringArray[i], textItems[k])) {
-              key[k] = stringArray[i];
+              // key[k] = stringArray[i];
+              key = `${key}${stringArray[i]}`; 
               break;
             }
           }
         }
 
+        key = `${key}${req.body.page_number}`;
+
         fs.unlinkSync(req.file.path);
-        // const decryptKey = gene
-        console.log(key);
+
+        try {
+          const bytes = CryptoJS.AES.decrypt(data.mainText.trim().toString(), key);
+          const decryptText = bytes.toString(CryptoJS.enc.Utf8);
+          return res.json({ success: true, message: 'job done', text: decryptText });
+        } catch (e) {
+          return res.json({ success: false, message: 'job failed' });
+        }
 
     });
 });
@@ -94,6 +103,11 @@ app.post('/add-data', authJwt, async function (req, res) {
   });
 
   return res.json({ success: true, message: 'job done' });
+});
+
+app.get('/get-all', authJwt, async function (req, res) {
+  const data = await Data.find({ userId: req.user.id }).select('_id');
+  return res.json({ success: true, message: 'data', data });
 });
 
 apiRoutes(app);
